@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">World, TestActivity!!</string>
+    <string name="app_name">MiniSMS</string>
+    <string name="color">color:</string>
+    <string-array name="list_options">
+        <item>删除该会话</item>
+        <item>拨号</item>
+    </string-array>
+
+    <string-array name="list_options_stranger">
+        <item>删除会话</item>
+        <item>拨号</item>
+        <item>新增联系人</item>
+        <item>更新联系人</item>
+    </string-array>
+    
+    <string-array name="conversation_options">
+        <item>删除消息</item>
+        <item>复制消息</item>
+        <item>转发</item>
+    </string-array>
+    
+</resources>

@@ -1,0 +1,159 @@
+<LinearLayout 
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:id="@+id/popup_item"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+	<RelativeLayout 
+		android:id="@+id/FromLinearLayout"
+		android:padding="5.0sp"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<ImageView 
+			android:id="@+id/ivFrom"
+			android:layout_width="50.0dip"
+			android:layout_height="50.0dip"
+			android:src="@drawable/icon"
+		/>
+		<TextView 
+			android:textSize="18.0sp"
+			android:textStyle="bold"
+			android:textColor="?android:textColorPrimary"
+			android:id="@+id/tvFrom"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:maxWidth="170.0sp"
+			android:text="13800000000"
+			android:singleLine="true"
+			android:layout_alignParentTop="true"
+			android:layout_centerHorizontal="true"
+			android:layout_centerVertical="true"
+			/>
+		<TextView 
+			android:textSize="12.0sp"
+			android:textStyle="bold"
+			android:textColor="?android:textColorSecondary"
+			android:id="@+id/tvMsgCount"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignBottom="@+id/ivFrom"
+			android:layout_centerHorizontal="true"
+			/>
+		<ImageButton 
+			android:id="@+id/ibClose"
+			android:background="@drawable/close_bg"
+			android:focusable="false"
+			android:layout_width="34.0sp"
+			android:layout_height="32.0sp"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentRight="true"
+			/>
+		<TextView 
+			android:textColor="?android:textColorSecondary"
+			android:id="@+id/tvTime"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginRight="2.0sp"
+			android:layout_alignBottom="@+id/ivFrom"
+			android:layout_alignParentRight="true"
+			/>
+    </RelativeLayout>
+    <ImageView android:paddingLeft="5.0sp"
+		android:paddingTop="1.0sp"
+		android:paddingRight="5.0sp"
+		android:paddingBottom="1.0sp"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:src="@drawable/line_pop"
+		android:scaleType="fitXY"
+		/>
+    <FrameLayout android:layout_width="fill_parent"
+		android:layout_height="0.0dip"
+		android:layout_weight="1.0">
+        <ImageView android:layout_gravity="left|center"
+			android:id="@+id/ivPrev"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:visibility="gone"
+			android:src="@drawable/btn_prev"
+			/>
+        <ImageView android:layout_gravity="right|center"
+			android:id="@+id/ivNext"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:visibility="gone"
+			android:src="@drawable/btn_next"
+			/>
+        <com.minisms.MiniScrollView android:id="@+id/scrollMessage"
+			android:paddingTop="5.0sp"
+			android:paddingBottom="5.0sp"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:minHeight="80.0sp"
+			android:layout_weight="1.0">
+
+            <TextView android:textSize="16.0sp"
+				android:textColor="?android:textColorPrimary"
+				android:gravity="left"
+				android:autoLink="all"
+				android:id="@+id/tvMessage"
+				android:paddingLeft="8.0sp"
+				android:paddingRight="8.0sp"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="sms content"
+				android:shadowColor="@android:color/white"
+				/>
+        </com.minisms.MiniScrollView>
+    </FrameLayout>
+    
+    	<LinearLayout android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		xmlns:android="http://schemas.android.com/apk/res/android">
+
+		<FrameLayout android:layout_width="fill_parent"
+			android:layout_height="0.0dip"
+			android:layout_weight="1.0">
+			<ViewFlipper android:id="@+id/flipper"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+			/>
+		</FrameLayout>
+		<ImageView android:id="@+id/toolsLine"
+			android:paddingLeft="5.0sp"
+			android:paddingTop="2.0sp"
+			android:paddingRight="5.0sp"
+			android:paddingBottom="2.0sp"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="2.0sp"
+			android:src="@drawable/line_pop"
+			android:scaleType="fitXY"
+			/>
+		<LinearLayout android:orientation="horizontal"
+			android:id="@+id/bottom_panel_popup"
+			android:paddingLeft="5.0dip"
+			android:paddingRight="2.0dip"
+			android:paddingBottom="0.0dip"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+			<EditText android:id="@+id/message"
+				android:paddingLeft="5.0sp"
+				android:paddingRight="5.0sp"
+				android:layout_width="0.0dip"
+				android:layout_height="wrap_content"
+				android:hint="输入内容"
+				android:maxLines="4"
+				android:layout_weight="1.0"
+				/>
+			<Button android:layout_gravity="center_vertical"
+				android:id="@+id/sendBtn"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginLeft="2.0sp"
+				android:text=" 回复 "
+			/>
+		</LinearLayout>
+</LinearLayout>
+</LinearLayout>
