@@ -5,7 +5,7 @@ import java.util.List;
 
 
 import android.content.Context;
-import android.util.Log;
+import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +73,9 @@ public class ConversationListAdapter extends BaseAdapter{
 		holder.getTvLastMessage().setText(entity.getLastMessage());
 		holder.getIvHead().setImageResource(R.drawable.default_head);
 		
+		TextPaint tp = holder.getTvDisplayName().getPaint();
+		tp.setFakeBoldText(true);
+		
 		return convertView;
 	}
 	
@@ -108,7 +111,6 @@ public class ConversationListAdapter extends BaseAdapter{
 	
 	public void clearAllElements(){
 		list.clear();
-		Log.i("jiang"	,"clearAllElements " + list.size());
 	}
 	
 	public void remove(int position){

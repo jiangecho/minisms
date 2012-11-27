@@ -30,7 +30,7 @@
         
         <activity
             android:launchMode="singleInstance"
-            android:name="com.minisms.ConversationListActivity" >
+            android:name="com.minicontact.ContactListActivity" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

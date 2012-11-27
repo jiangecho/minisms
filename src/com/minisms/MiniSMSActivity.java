@@ -285,7 +285,6 @@ public class MiniSMSActivity extends Activity {
 					thread_id = cursor.getInt(1);
 					_id = cursor.getInt(2);
 					contentResolver.delete(Uri.parse("content://sms/conversations/" + thread_id), "_id=" + _id, null);
-					Log.i("jiang", "MiniSMSActivity delete message " + thread_id + " " + _id);
 					break;
 				}
 				Log.i("jiang", "deleteMSG " + test);

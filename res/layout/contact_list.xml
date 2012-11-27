@@ -12,16 +12,15 @@
   			android:background="@drawable/title_bar"
   			android:gravity="center_vertical"  >  
   			
-            
       		<TextView
         		android:layout_width="wrap_content" 
         		android:layout_height="wrap_content" 
-        		android:text="Contact"
+        			android:text="MiniSMS"
         		android:layout_centerInParent="true"
         		android:textSize="20sp"		
 				android:textColor="#ffffff" /> 
 			<ImageButton 
-			    android:id="@+id/ib_add_contact"
+			    android:id="@+id/right_btn"
 			    android:layout_width="67dp" 
         		android:layout_height="wrap_content"
         		android:layout_alignParentRight="true" 
@@ -39,7 +38,7 @@
             android:background="@drawable/search_bar_bg" >
 
             <EditText
-                android:id="@+id/et_contact_search"
+                android:id="@+id/editText1"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:hint="Search"
@@ -54,10 +53,11 @@
         </LinearLayout>
         
         <ListView 
-            android:id="@+id/lv_conversation_list"
+            android:id="@+id/lv_contact_list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:longClickable="true"
+            android:fastScrollEnabled="true"
             >
         </ListView>
 

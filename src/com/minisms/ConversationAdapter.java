@@ -17,9 +17,7 @@ public class ConversationAdapter extends BaseAdapter{
 	private String from;
 	private List<ConversationEntity> list;
 	private Context context;
-public ConversationAdapter() {
-	// TODO Auto-generated constructor stub
-}	
+	
 	private LayoutInflater layoutInflater;
 	
 	private final int OUT = 1;

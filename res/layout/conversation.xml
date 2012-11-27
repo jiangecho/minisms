@@ -71,7 +71,6 @@
         android:singleLine="false"
         android:scrollHorizontally="false"
         android:layout_centerVertical="true"
-        android:hint="please input"
         android:textSize="18sp"/>
          
         <!-- android:background="@drawable/login_edit_normal" -->

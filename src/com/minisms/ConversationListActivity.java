@@ -13,6 +13,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -25,6 +27,7 @@ public class ConversationListActivity extends Activity{
 
     public static final Uri MMSSMS_FULL_CONVERSATION_URI = Uri.parse("content://mms-sms/conversations");
     public static final Uri CONVERSATION_URI = MMSSMS_FULL_CONVERSATION_URI.buildUpon().appendQueryParameter("simple", "true").build(); 
+    private static final int REQUESTCODE = 1;
     
 	private ListView listView;
 	private ConversationListAdapter adapter;
@@ -82,6 +85,8 @@ public class ConversationListActivity extends Activity{
 					optionsArray = getResources().getStringArray(R.array.list_options_stranger);
 					title = entity.getPhoneNumber();
 				}
+				
+	
 				AlertDialog dialog = new AlertDialog.Builder(ConversationListActivity.this)
 				.setItems(optionsArray, new OnClickListener() {
 					
@@ -184,7 +189,7 @@ public class ConversationListActivity extends Activity{
 						projection1, "_id=" + cursor.getInt(3), null, null);
 				if ((cur != null) && (cur.moveToNext())) {
 					entity = new ConversationListItemEntity(cursor.getInt(0), cursor.getLong(1), cursor.getString(2), 
-							null, cur.getString(1));
+							getSenderName(cur.getString(1)), cur.getString(1));
 						cur.close();
 					
 				} else {
@@ -196,6 +201,26 @@ public class ConversationListActivity extends Activity{
 			}
 			cursor.close();
 		}
+	}
+	
+	private String getSenderName(String phoneNumber){
+		Log.i("jiang", "getSenderName " + phoneNumber);
+		ContentResolver cr = getContentResolver();
+		String name = null;
+		String[] projection = {PhoneLookup.DISPLAY_NAME};
+		String selection = Phone.NUMBER + "= '" + phoneNumber +"'";
+		
+		if (phoneNumber.startsWith("+86")) {
+			selection += " or " + Phone.NUMBER + "='" + phoneNumber.substring(3) + "'";
+		}
+		
+		//Cursor cursor = cr.query(Phone.CONTENT_URI, projection, Phone.NUMBER +" = '" + phoneNumber + "'", null, null);
+		Cursor cursor = cr.query(Phone.CONTENT_URI, projection, selection, null, null);
+		if ((cursor != null) && (cursor.moveToFirst())) {
+			name = cursor.getString(0);
+		}
+		cursor.close();
+		return name;
 	}
 	
 	private class ConversationObserver extends ContentObserver{
@@ -248,6 +273,19 @@ public class ConversationListActivity extends Activity{
 		intent.setType("vnd.android.cursor.dir/person");
 		intent.putExtra(ContactsContract.Intents.Insert.PHONE, entity.getPhoneNumber());
 		startActivity(intent);
+		startActivityForResult(intent, REQUESTCODE);
 	}
+
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == REQUESTCODE) {
+			this.needRefresh = true;
+		}
+	}
+
+	
 	
 }

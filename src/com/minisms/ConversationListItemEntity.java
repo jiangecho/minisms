@@ -12,7 +12,6 @@ public class ConversationListItemEntity {
 	
 	private int thread_id;
 	
-	
 	public ConversationListItemEntity(int thread_id, long timeMillions, String lastMessage,
 			String displayName, String phoneNumber) {
 		super();

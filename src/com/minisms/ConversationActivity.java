@@ -96,23 +96,22 @@ public class ConversationActivity extends Activity {
 				selectedIndex = position;
 				String[] options = getResources().getStringArray(R.array.conversation_options);
 				AlertDialog dialog = new AlertDialog.Builder(ConversationActivity.this)
-																	.setTitle(mPhoneNumber)
-																	.setItems(options, new DialogInterface.OnClickListener() {
-																		
-																		@Override
-																		public void onClick(DialogInterface dialog, int which) {
-																			// TODO Auto-generated method stub
-																			switch (which) {
-																			case 0:
-																				deleteCurMsg();
-																				break;
+									.setTitle(mPhoneNumber)
+									.setItems(options, new DialogInterface.OnClickListener() {
+										
+										public void onClick(DialogInterface dialog, int which) {
+											// TODO Auto-generated method stub
+											switch (which) {
+											case 0:
+												deleteCurMsg();
+												break;
 
-																			default:
-																				break;
-																			}
-																			
-																		}
-																	}).create();
+											default:
+												break;
+											}
+											
+										}
+										}).create();
 				dialog.show();
 				return false;
 			}

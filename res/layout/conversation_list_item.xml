@@ -25,7 +25,7 @@
                 android:layout_toRightOf="@id/head"
                 android:padding="7dp"
                 android:text="name"
-                android:textColor="#000" />
+                android:textColor="#666" />
             <TextView
                 android:id="@+id/tvLastDate"
                 android:layout_width="wrap_content"
