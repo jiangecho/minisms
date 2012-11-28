@@ -36,7 +36,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+        <activity
+            android:launchMode="singleInstance"
+            android:name="com.minicontact.ContactInfoActivity" >
+        </activity>
         <receiver
             android:name="com.minisms.SMSReceiver"
             android:enabled="true"

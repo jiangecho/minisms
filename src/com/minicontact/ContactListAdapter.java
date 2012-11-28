@@ -1,20 +1,12 @@
 package com.minicontact;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
-import android.R;
-import android.R.integer;
-import android.R.string;
 import android.content.Context;
-import android.graphics.Region.Op;
-import android.provider.MediaStore.Images;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
@@ -34,7 +26,6 @@ public class ContactListAdapter extends BaseAdapter implements SectionIndexer{
 		sections = new ArrayList<String>();
 		startIndexs = new ArrayList<Integer>();
 		
-		LinkedHashSet<String> hehHashSet  = new LinkedHashSet<String>();
 		layoutInflater = LayoutInflater.from(context);
 	}
 	
@@ -79,7 +70,7 @@ public class ContactListAdapter extends BaseAdapter implements SectionIndexer{
 			holder = (Holder)convertView.getTag();
 		}
 		
-		if (position == getPositionForSection( getSectionForPosition(position))){
+		if (position == getPositionForSection(getSectionForPosition(position))){
 			String sortKey = sections.get(getSectionForPosition(position));
 			holder.tvAlpha.setText(sortKey );
 			holder.tvAlpha.setVisibility(View.VISIBLE);
@@ -148,4 +139,9 @@ public class ContactListAdapter extends BaseAdapter implements SectionIndexer{
 		return sections.toArray();
 	}
 	
+	public void clear(){
+		list.clear();
+		sections.clear();
+		startIndexs.clear();
+	}
 }

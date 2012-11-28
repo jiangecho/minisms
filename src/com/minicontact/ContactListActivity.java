@@ -2,20 +2,27 @@ package com.minicontact;
 
 import com.minisms.R;
 
+import android.R.bool;
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 
-public class ContactListActivity extends Activity{
+public class ContactListActivity extends Activity implements OnItemClickListener, OnItemLongClickListener{
 
 	private ListView listView;
 	private ContactListAdapter adapter;
 	private AsyncQueryHandler asyncQueryHandler;
+	private boolean needRefresh = true;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +32,9 @@ public class ContactListActivity extends Activity{
 		
 		setContentView(R.layout.contact_list);
 		listView = (ListView)findViewById(R.id.lv_contact_list);
+		listView.setOnItemClickListener(this);
 		adapter = ContactListAdapter.getInstance(this);
+		adapter.clear();
 		
 		asyncQueryHandler = new MyAsynQueryHandler(getContentResolver());
 		
@@ -37,8 +46,11 @@ public class ContactListActivity extends Activity{
 		String[] projection = {Phone.DISPLAY_NAME, Phone.DATA1, "sort_key"};
 		super.onResume();
 		
-		asyncQueryHandler.startQuery(0, null, Phone.CONTENT_URI, projection, 
-				null, null, "sort_key COLLATE LOCALIZED asc");
+		if (needRefresh) {
+			asyncQueryHandler.startQuery(0, null, Phone.CONTENT_URI, projection, 
+					null, null, "sort_key COLLATE LOCALIZED asc");
+			needRefresh = false;
+		}
 	}
 
 	
@@ -64,8 +76,25 @@ public class ContactListActivity extends Activity{
 			}
 			listView.setAdapter(adapter);
 		}
+	}
 
-		
-		
+
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		ContactEntity entity = (ContactEntity)adapter.getItem(position);
+		Intent intent = new Intent(this, ContactInfoActivity.class);
+		intent.putExtra("name", entity.getName());
+		intent.putExtra("number", entity.getNumber());
+		startActivity(intent);
+		overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
+	}
+
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
+			long arg3) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

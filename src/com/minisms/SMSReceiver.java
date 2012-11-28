@@ -8,9 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.ContentObserver;
 import android.os.Bundle;
-import android.os.Handler;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
@@ -42,7 +40,6 @@ public class SMSReceiver extends BroadcastReceiver{
 					intent.setClass(context, MiniSMSActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					context.startActivity(intent);
-	
 				}
 			}
 			
