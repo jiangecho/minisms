@@ -1,5 +1,7 @@
 package com.minisms;
 
+import com.minicontact.ContactListActivity;
+
 import android.app.Activity;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -23,12 +25,26 @@ public class MiniGestureListener extends SimpleOnGestureListener{
 			float velocityY) {
 		// TODO Auto-generated method stub
 		Log.i("jiang", "onFling");
-		if ((Math.abs(e1.getX() - e2.getX()) > SWIPE_MIN_DISTANCE) 
+		if ((e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) 
 				&& (Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITX)) {
 			Log.i("jiang", "swipe left or right");
 			
 			if(ownerActivity instanceof MiniSMSActivity){
 				((MiniSMSActivity)ownerActivity).swipe();
+			}else if(ownerActivity instanceof ConversationListActivity){
+				((ConversationListActivity) ownerActivity).swipeToRight();
+			}else if (ownerActivity instanceof ContactListActivity) {
+				((ContactListActivity) ownerActivity).swipeToLeft();
+			}
+			
+		}else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+				&& (Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITX)) {
+			if(ownerActivity instanceof MiniSMSActivity){
+				((MiniSMSActivity)ownerActivity).swipe();
+			}else if(ownerActivity instanceof ConversationListActivity){
+				((ConversationListActivity) ownerActivity).swipeToLeft();
+			}else if (ownerActivity instanceof ContactListActivity) {
+				((ContactListActivity) ownerActivity).swipeToRight();
 			}
 			
 		}else {

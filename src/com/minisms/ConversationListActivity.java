@@ -1,5 +1,8 @@
 package com.minisms;
 
+import com.minicontact.ContactListActivity;
+
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
@@ -17,14 +20,17 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 
-public class ConversationListActivity extends Activity{
+public class ConversationListActivity extends Activity implements OnTouchListener{
 
     public static final Uri MMSSMS_FULL_CONVERSATION_URI = Uri.parse("content://mms-sms/conversations");
     public static final Uri CONVERSATION_URI = MMSSMS_FULL_CONVERSATION_URI.buildUpon().appendQueryParameter("simple", "true").build(); 
@@ -36,6 +42,7 @@ public class ConversationListActivity extends Activity{
 	private ContentObserver observer;
 	private ContentResolver contentResolver;
 	private ConversationsQueryHandler queryHandler;
+	private GestureDetector mGestureDetector;
 	
 	private int currentSelectedItem = -1;
 	
@@ -71,6 +78,7 @@ public class ConversationListActivity extends Activity{
 
 		});
 		
+		listView.setOnTouchListener(this);
 		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
@@ -128,6 +136,7 @@ public class ConversationListActivity extends Activity{
 		observer = new ConversationObserver(new Handler());
 		contentResolver.registerContentObserver(Uri.parse("content://sms/"), true, observer);
 		
+        mGestureDetector = new GestureDetector(new MiniGestureListener(ConversationListActivity.this));
 	}
 	
 
@@ -256,7 +265,7 @@ public class ConversationListActivity extends Activity{
 	}
 	
 	private String getSenderName(String phoneNumber){
-		Log.i("jiang", "getSenderName " + phoneNumber);
+		
 		ContentResolver cr = getContentResolver();
 		String name = null;
 		String[] projection = {PhoneLookup.DISPLAY_NAME};
@@ -336,6 +345,27 @@ public class ConversationListActivity extends Activity{
 		}
 	}
 
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		Log.i("jiang", "conversationListActivity onTouch");
+		mGestureDetector.onTouchEvent(event);
+		return false;
+	}
 	
+	public void swipeToRight(){
+		
+		Log.i("jiang" , "haaaaaaaaaaaaaaaa");
+		Intent intent = new Intent(this, ContactListActivity.class);
+		startActivity(intent);
+		overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
+	}
 	
+	public void swipeToLeft(){
+		
+		Log.i("jiang" , "haaaaaaaaaaaaaaaa");
+		Intent intent = new Intent(this, ContactListActivity.class);
+		startActivity(intent);
+		overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);
+	}
 }

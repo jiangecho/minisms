@@ -78,7 +78,7 @@ public class ConversationActivity extends Activity {
 		
 		//mThread_id = getThreadId(mPhoneNumber);
 		mThread_id = getIntent().getIntExtra("THREAD_ID", -1);
-		Log.i("jiang", "thread_id" + mThread_id);
+		Log.i("jiang", "thread_id" + mThread_id + " " + mPhoneNumber);
 		
 		mAdapter = ConversationAdapter.getInstance(this);
 		mAdapter.init();
