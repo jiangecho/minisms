@@ -17,15 +17,15 @@ public class ConversationListAdapter extends BaseAdapter{
 
 	private List<ConversationListItemEntity> list;
 	private LayoutInflater layoutInflater;
+	private static ConversationListAdapter adapter;
 	
+	public static ConversationListAdapter getInstance(Context context){
+		if (adapter == null) {
+			adapter = new ConversationListAdapter(context);
+		}
+		return adapter;
+	}
 	
-//	public ConversationListAdapter(List<ConversationListItemEntity> list,
-//			Context context) {
-//		super();
-//		this.list = list;
-//		layoutInflater = LayoutInflater.from(context);
-//	}
-
 	public ConversationListAdapter(Context context){
 		super();
 		list = new ArrayList<ConversationListItemEntity>();
@@ -109,7 +109,11 @@ public class ConversationListAdapter extends BaseAdapter{
 		return ret;
 	}
 	
-	public void clearAllElements(){
+	public void init(){
+		list.clear();
+	}
+	
+	public void clear(){
 		list.clear();
 	}
 	

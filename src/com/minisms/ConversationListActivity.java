@@ -2,6 +2,7 @@ package com.minisms;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,9 +32,10 @@ public class ConversationListActivity extends Activity{
     
 	private ListView listView;
 	private ConversationListAdapter adapter;
-	private boolean needRefresh = false;
+	private boolean needRefresh = true;
 	private ContentObserver observer;
 	private ContentResolver contentResolver;
+	private ConversationsQueryHandler queryHandler;
 	
 	private int currentSelectedItem = -1;
 	
@@ -46,9 +48,14 @@ public class ConversationListActivity extends Activity{
 		
 		contentResolver = getContentResolver();
 		listView = (ListView)findViewById(R.id.lv_conversation_list);
-		adapter = new ConversationListAdapter(this);
-		updateAdapterDataSet(adapter);
-		listView.setAdapter(adapter);
+		
+		adapter = ConversationListAdapter.getInstance(this);
+		adapter.init();
+		
+		//updateAdapterDataSet(adapter);
+		//listView.setAdapter(adapter);
+		
+		
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -58,11 +65,8 @@ public class ConversationListActivity extends Activity{
 				intent.setClass(ConversationListActivity.this, ConversationActivity.class);
 				intent.putExtra("THREAD_ID", ((ConversationListItemEntity)(adapter.getItem(position))).getThread_id());
 				intent.putExtra("PHONENUMBER", ((ConversationListItemEntity)(adapter.getItem(position))).getPhoneNumber());
-				//overridePendingTransition(android.R.anim.slide_out_right, android.R.anim.slide_in_left);
 				startActivity(intent);
 				overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
-				//overridePendingTransition(android.R.anim.slide_out_right, android.R.anim.slide_in_left);
-				//overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_in_left);
 			}
 
 		});
@@ -134,13 +138,17 @@ public class ConversationListActivity extends Activity{
 	
 	@Override
 	protected void onResume() {
-		super.onResume();
+		String[] projection = {"_id", "date", "snippet", "recipient_ids"};
 		
+		super.onResume();
 		if (needRefresh) {
 			Log.i("jiang", "updateAdapterDataSet");
 			needRefresh = false;
-			adapter.clearAllElements();
-			updateAdapterDataSet(adapter);
+			adapter.clear();
+			queryHandler = new ConversationsQueryHandler(contentResolver);
+			queryHandler.startQuery(0, null, CONVERSATION_URI, projection, null, null, "date desc");
+			
+			//updateAdapterDataSet(adapter);
 			adapter.notifyDataSetChanged();
 		}
 	}
@@ -203,6 +211,50 @@ public class ConversationListActivity extends Activity{
 		}
 	}
 	
+	private class ConversationsQueryHandler extends AsyncQueryHandler{
+
+		public ConversationsQueryHandler(ContentResolver cr) {
+			super(cr);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			// TODO Auto-generated method stub
+			super.onQueryComplete(token, cookie, cursor);
+			
+			if (cursor != null) {
+				int phoneNumverIndex;
+				Cursor cur = null;
+				String[] projection1 = {"address"};
+				String phoneNumber;
+				ConversationListItemEntity entity;
+				
+				Log.i("jiang", "updateAdapterDataSet");
+				while (cursor.moveToNext()) {
+					//TODO group sms
+					//cur = getContentResolver().query(Uri.parse("content://mms-sms/canonical-addresses"),
+					//		projection1, "_id=?", new String[]{cursor.getString(3)}, null);
+					cur = contentResolver.query(Uri.parse("content://mms-sms/canonical-addresses"),
+							projection1, "_id=" + cursor.getInt(3), null, null);
+					if ((cur != null) && (cur.moveToNext())) {
+						entity = new ConversationListItemEntity(cursor.getInt(0), cursor.getLong(1), cursor.getString(2), 
+								getSenderName(cur.getString(1)), cur.getString(1));
+							cur.close();
+						
+					} else {
+						entity = new ConversationListItemEntity(cursor.getInt(0), cursor.getLong(1), cursor.getString(2), 
+								null, null);
+	
+					}
+					adapter.addElement(entity);
+				}
+				cursor.close();
+			}
+			listView.setAdapter(adapter);
+		}	
+	}
+	
 	private String getSenderName(String phoneNumber){
 		Log.i("jiang", "getSenderName " + phoneNumber);
 		ContentResolver cr = getContentResolver();
@@ -236,9 +288,7 @@ public class ConversationListActivity extends Activity{
 			Log.i("jiang", "ConversationListActivity onChange");
 			super.onChange(selfChange);
 			needRefresh = true;
-			
 		}
-		
 	}
 	
 	private void deleteConvertion(int position){

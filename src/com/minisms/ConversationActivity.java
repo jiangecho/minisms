@@ -7,6 +7,7 @@ import java.util.List;
 import android.R.anim;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -57,12 +58,12 @@ public class ConversationActivity extends Activity {
 	private SharedPreferences mSharedPreferences; 
 	private ContentObserver observer;
 	
+	private AsyncQueryHandler queryHandler;
+	
 	private int selectedIndex = -1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		
-		Log.i("jiang", "onCreateeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -72,7 +73,6 @@ public class ConversationActivity extends Activity {
 		mContentResolver = getContentResolver();
 		
 		mPhoneNumber = getIntent().getStringExtra("PHONENUMBER");
-		//mPhoneNumber = "15555215556";
 		mSharedPreferences = getSharedPreferences("currentPhoneNumber", MODE_PRIVATE);
 		mSharedPreferences.edit().putString("currentPhoneNumber", mPhoneNumber).apply();
 		
@@ -80,12 +80,19 @@ public class ConversationActivity extends Activity {
 		mThread_id = getIntent().getIntExtra("THREAD_ID", -1);
 		Log.i("jiang", "thread_id" + mThread_id);
 		
-		mAdapter = new ConversationAdapter(mPhoneNumber, getChatEntities(), this);
-		Log.i("jiang ", "madaterrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr " + mAdapter);
+		mAdapter = ConversationAdapter.getInstance(this);
+		mAdapter.init();
+		
+		queryHandler = new ConversationQueryHandler(getContentResolver());
+		
+		if (mThread_id != -1) {
+			Uri uri = Uri.parse(SMS_URI_ALL);
+			String[] projection = {"_id", ADDR, "person", "body", "date", "type", "read"};
+			queryHandler.startQuery(0, null, uri, projection, THREAD_ID + "=?",
+					new String[]{Integer.toString(mThread_id)}, "date asc");
+		}
+		
 		mListView = (ListView)findViewById(R.id.listview);
-		mListView.setAdapter(mAdapter);
-		mListView.setSelection(mAdapter.getCount() - 1);
-		mListView.setSelector(android.R.color.transparent);
 		
 		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
@@ -127,7 +134,7 @@ public class ConversationActivity extends Activity {
 				mEditText.setText("");
 				if((text != null) && (text.length() > 0)){
 					int _id = sendMSG(mPhoneNumber, text.toString());
-					mAdapter.addConversationEntity(
+					mAdapter.addElement(
 							new ConversationEntity(System.currentTimeMillis(), text.toString(), 2, _id));
 				}else {
 					Toast.makeText(ConversationActivity.this, "please input", Toast.LENGTH_SHORT).show();
@@ -165,34 +172,6 @@ public class ConversationActivity extends Activity {
 		Log.i("jiang", "onPauseeeeeeeeeeeeeeeeeeeee");
 		super.onPause();
 	}
-//
-//	@Override
-//	protected void onRestart() {
-//		// TODO Auto-generated method stub
-//		Log.i("jiang", "onRestarttttttttttttttttttttttttttttttt");
-//		super.onRestart();
-//	}
-//
-//	@Override
-//	protected void onResume() {
-//		// TODO Auto-generated method stub
-//		Log.i("jiang", "onResumeeeeeeeeeeeeeeeeeeeeeeeeeee");
-//		super.onResume();
-//	}
-//
-//	@Override
-//	protected void onStart() {
-//		// TODO Auto-generated method stub
-//		Log.i("jiang", "onStarttttttttttttttttttttttttttttt");
-//		super.onStart();
-//	}
-//
-//	@Override
-//	protected void onStop() {
-//		// TODO Auto-generated method stub
-//		Log.i("jiang", "onStoppppppppppppppppppppppppppp");
-//		super.onStop();
-//	}
 
 	@Override
 	protected void onDestroy() {
@@ -229,44 +208,43 @@ public class ConversationActivity extends Activity {
 		return threadId;
 	}
 	
-	private List<ConversationEntity> getChatEntities(){
-		ConversationEntity chatEntity;
-		List<ConversationEntity> list = new ArrayList<ConversationEntity>();
-		Uri uri = Uri.parse(SMS_URI_ALL);
-		//String[] projection = {"_id", ADDR, "person", "body", "date", "type"};
-		String[] projection = {"_id", ADDR, "person", "body", "date", "type", "read"};
-		Cursor cursor = mContentResolver.query(uri, projection, THREAD_ID + "=?",
-				new String[]{Integer.toString(mThread_id)}, "date asc");
-		
-		ContentValues values = new ContentValues();
-		values.put("read", 1);
-		
-		if (cursor != null) {
-			int timeIndex = cursor.getColumnIndex("date");
-			int bodyIndex = cursor.getColumnIndex("body");
-			int typeIndex = cursor.getColumnIndex("type");
-			int _idIndex = cursor.getColumnIndex("_id");
-			int readIndex = cursor.getColumnIndex("read");
-			
+	
+	private class ConversationQueryHandler extends AsyncQueryHandler{
+
+		public ConversationQueryHandler(ContentResolver cr) {
+			super(cr);
+		}
+
+		@Override
+		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+			// TODO Auto-generated method stub
 			int _id;
 			int read;
+			ConversationEntity chatEntity;
+			ContentValues values = new ContentValues();
+			values.put("read", 1);
+			super.onQueryComplete(token, cookie, cursor);
 			
-			while(cursor.moveToNext()){
-				_id = cursor.getInt(_idIndex);
-				chatEntity = new ConversationEntity(cursor.getLong(timeIndex), cursor.getString(bodyIndex),
-						cursor.getInt(typeIndex), _id);
-				list.add(chatEntity);
-				
-				read = cursor.getInt(readIndex);
-				if (read == 0) {
-					mContentResolver.update(uri, values, "thread_id=" + mThread_id + " and _id=" + _id, null);
+			if (cursor != null) {
+				while(cursor.moveToNext()){
+					_id = cursor.getInt(0);
+					chatEntity = new ConversationEntity(cursor.getLong(4), cursor.getString(3),
+							cursor.getInt(5), _id);
+					mAdapter.addElement(chatEntity);
 					
+					read = cursor.getInt(6);
+					if (read == 0) {
+						mContentResolver.update(Uri.parse(SMS_URI_ALL), values, "thread_id=" + mThread_id + " and _id=" + _id, null);
+						
+					}
 				}
+				cursor.close();
 			}
 			
-			cursor.close();
+			mListView.setAdapter(mAdapter);
+			mListView.setSelection(mAdapter.getCount() - 1);
+			mListView.setSelector(android.R.color.transparent);
 		}
-		return list;
 	}
 	
 	private class ConversationObserver extends ContentObserver{
@@ -310,7 +288,7 @@ public class ConversationActivity extends Activity {
 				while (cursor.moveToNext()) {
 					chatEntity = new ConversationEntity(cursor.getLong(0), cursor.getString(1), 1,cursor.getInt(3));
 					Log.i("jiang", "addConversationEntity");
-					mAdapter.addConversationEntity(chatEntity);
+					mAdapter.addElement(chatEntity);
 					
 					_id = cursor.getInt(3);
 					mContentResolver.update(Uri.parse(SMS_URI_INBOX), values, "thread_id=" + mThread_id + " and _id=" + _id, null);
@@ -324,8 +302,6 @@ public class ConversationActivity extends Activity {
 		
 		
 	}
-	
-	
 	
 	private int sendMSG(String phoneNumber, String message){
 		SmsManager smsManager = SmsManager.getDefault();
@@ -363,6 +339,6 @@ public class ConversationActivity extends Activity {
 			}
 		//}.execute(new Integer(mThread_id), new Integer(_id));
 		}.execute(Integer.valueOf(mThread_id), Integer.valueOf(_id));
-		
 	}
+	
 }

@@ -1,5 +1,6 @@
 package com.minisms;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -14,24 +15,29 @@ import android.widget.TextView;
 
 public class ConversationAdapter extends BaseAdapter{
 
-	private String from;
 	private List<ConversationEntity> list;
 	private Context context;
+	private static ConversationAdapter adapter;
 	
 	private LayoutInflater layoutInflater;
 	
 	private final int OUT = 1;
 	private final int IN = 0;
 	
+	public static ConversationAdapter getInstance(Context context){
+		if (adapter == null) {
+			adapter = new ConversationAdapter(context); 
+		}
+		return adapter;
+	}
 	
-	public ConversationAdapter(String from, List<ConversationEntity> list, Context context) {
-		super();
-		
-		this.from = from;
-		this.list = list;
-		this.context = context;
-		
+	public ConversationAdapter(Context context){
 		layoutInflater = LayoutInflater.from(context);
+		list = new ArrayList<ConversationEntity>();
+	}
+	
+	public void init(){
+		list.clear();
 	}
 
 	public int getCount() {
@@ -139,7 +145,7 @@ public class ConversationAdapter extends BaseAdapter{
 		list.remove(postion);
 	}
 	
-	public void addConversationEntity(ConversationEntity conversationEntity){
+	public void addElement(ConversationEntity conversationEntity){
 		list.add(conversationEntity);
 		Log.i("jiang", "ConversationAdapter  list size " + list.size());
 		//notifyDataSetChanged();
