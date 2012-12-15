@@ -12,7 +12,7 @@
         <!-- android:theme="@style/slideTheme" -->
         <activity
 	        android:theme="@android:style/Theme.Translucent"
-            android:launchMode="singleInstance"
+	        android:launchMode="singleInstance"
             android:name="com.minisms.MiniSMSActivity" >
             <!-- 
             <intent-filter >
@@ -24,26 +24,22 @@
         </activity>
         
         <activity
-            android:launchMode="singleInstance"
+            android:theme="@style/activityTheme"
             android:name="com.minisms.ConversationActivity" >
         </activity>
         
         <activity
-            android:launchMode="singleInstance"
-            android:name="com.minicontact.ContactListActivity" >
+            android:name="com.minicontact.ContactListActivity" 
+            android:theme="@style/activityTheme">
         </activity>
         
         <activity
-            android:launchMode="singleInstance"
-            android:name="com.minisms.ConversationListActivity" >
+            android:name="com.minisms.ConversationListActivity" 
+            android:theme="@style/activityTheme">
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:launchMode="singleInstance"
-            android:name="com.minicontact.ContactInfoActivity" >
         </activity>
         <receiver
             android:name="com.minisms.SMSReceiver"
@@ -54,6 +50,11 @@
             </intent-filter>
             
         </receiver>
+        
+        <service 
+            android:name="com.minisms.MiniService">
+            
+        </service>
     </application>
 
         <uses-permission android:name="android.permission.SEND_SMS"/>

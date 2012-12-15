@@ -13,7 +13,7 @@
 			android:id="@+id/ivFrom"
 			android:layout_width="50.0dip"
 			android:layout_height="50.0dip"
-			android:src="@drawable/icon"
+			android:src="@drawable/default_head"
 		/>
 		<TextView 
 			android:textSize="18.0sp"
@@ -58,15 +58,10 @@
 			android:layout_alignParentRight="true"
 			/>
     </RelativeLayout>
-    <ImageView android:paddingLeft="5.0sp"
-		android:paddingTop="1.0sp"
-		android:paddingRight="5.0sp"
-		android:paddingBottom="1.0sp"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:src="@drawable/line_pop"
-		android:scaleType="fitXY"
-		/>
+    <View android:layout_width="fill_parent"
+        android:layout_height="0.5dp" 
+        android:background="#696969"/>
+    
     <FrameLayout android:layout_width="fill_parent"
 		android:layout_height="0.0dip"
 		android:layout_weight="1.0">
@@ -95,7 +90,6 @@
             <TextView android:textSize="16.0sp"
 				android:textColor="?android:textColorPrimary"
 				android:gravity="left"
-				android:autoLink="all"
 				android:id="@+id/tvMessage"
 				android:paddingLeft="8.0sp"
 				android:paddingRight="8.0sp"
@@ -120,17 +114,11 @@
 				android:layout_height="wrap_content"
 			/>
 		</FrameLayout>
-		<ImageView android:id="@+id/toolsLine"
-			android:paddingLeft="5.0sp"
-			android:paddingTop="2.0sp"
-			android:paddingRight="5.0sp"
-			android:paddingBottom="2.0sp"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginBottom="2.0sp"
-			android:src="@drawable/line_pop"
-			android:scaleType="fitXY"
-			/>
+		
+	    <View android:layout_width="fill_parent"
+	        android:layout_height="0.5dp" 
+	        android:background="#696969"/>
+	    
 		<LinearLayout android:orientation="horizontal"
 			android:id="@+id/bottom_panel_popup"
 			android:paddingLeft="5.0dip"
@@ -145,6 +133,7 @@
 				android:layout_height="wrap_content"
 				android:hint="输入内容"
 				android:maxLines="4"
+		        android:background="@drawable/login_edit_normal"
 				android:layout_weight="1.0"
 				/>
 			<Button android:layout_gravity="center_vertical"
@@ -152,6 +141,7 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_marginLeft="2.0sp"
+        		android:background="@drawable/chat_send_btn" 
 				android:text=" 回复 "
 			/>
 		</LinearLayout>

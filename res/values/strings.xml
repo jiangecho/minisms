@@ -18,7 +18,15 @@
     
     <string-array name="conversation_options">
         <item>删除消息</item>
-        <item>复制消息</item>
         <item>转发</item>
     </string-array>
+    
+    <string-array name="contact_list_options">
+        <item>拨号</item>
+    </string-array>
+
+    <string name="pull_to_refresh_pull_label">Pull to refresh...</string>
+    <string name="pull_to_refresh_release_label">Release to refresh...</string>
+    <string name="pull_to_refresh_refreshing_label">Loading...</string>
+    <string name="pull_to_refresh_tap_label">Tap to refresh...</string>
 </resources>

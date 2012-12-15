@@ -1,10 +1,8 @@
 package com.minicontact;
 
 import com.minisms.ConversationActivity;
-import com.minisms.ConversationListActivity;
 import com.minisms.R;
 
-import android.R.string;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -48,5 +46,9 @@ public class ContactInfoActivity extends Activity{
 		
 		startActivity(intent);
 		overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
+	}
+
+	/** Default constructor */
+	public ContactInfoActivity() {
 	}
 }

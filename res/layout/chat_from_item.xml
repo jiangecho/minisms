@@ -16,13 +16,14 @@
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
         android:paddingTop="2dp"
-        android:textColor="#ffffff"
+        android:textColor="#696969"
         android:textSize="12sp" />
 
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp" >
+		android:layout_marginLeft="2dp"
+        android:layout_marginTop="2dp" >
 
         <ImageView
             android:id="@+id/iv_user_image"
@@ -30,24 +31,24 @@
             android:layout_height="50dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
-            android:onClick="onHeadClick"
-            android:background="@drawable/friendactivity_personalportrait_default"
             android:focusable="false" />
 
         <TextView
             android:id="@+id/tv_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="2dp"
             android:layout_toRightOf="@+id/iv_user_image"
             android:background="@drawable/chat_from_bg"
             android:clickable="true"
             android:focusable="true"
             android:gravity="left|center"
             android:lineSpacingExtra="2dp"
+            android:layout_marginRight="30dp"
             android:minHeight="50dp"
             android:textColor="#ff000000"
 		    android:longClickable="true"
+		    android:autoLink="all"
             android:textSize="14sp" />
     </RelativeLayout>
 

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import android.R.integer;
 import android.content.Context;
+import android.content.DialogInterface.OnDismissListener;
 import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +35,11 @@ public class ConversationListAdapter extends BaseAdapter{
 	}
 	public int getCount() {
 		// TODO Auto-generated method stub
-		return list.size();
+		if (list != null) {
+			return list.size();
+		}else {
+			return -1;
+		}
 	}
 
 	public Object getItem(int position) {
@@ -48,9 +54,9 @@ public class ConversationListAdapter extends BaseAdapter{
 
 	public View getView(int position, View convertView, ViewGroup parent) {
 		// TODO Auto-generated method stub
-		ConversationListItemHolder holder;
+		Holder holder;
 		String display;
-		ConversationListItemEntity entity = list.get(position);
+		final ConversationListItemEntity entity = list.get(position);
 		
 		display = entity.getDisplayName();
 		if (display == null) {
@@ -59,21 +65,22 @@ public class ConversationListAdapter extends BaseAdapter{
 		
 		if (convertView == null) {
 			convertView = layoutInflater.inflate(R.layout.conversation_list_item, null);
-			holder = new ConversationListItemHolder((TextView)convertView.findViewById(R.id.tvDisplayName),
+			holder = new Holder((TextView)convertView.findViewById(R.id.tvDisplayName),
 					(TextView)convertView.findViewById(R.id.tvLastDate),
 					(TextView)convertView.findViewById(R.id.tvLastMessage),
 					(ImageView)convertView.findViewById(R.id.head));
 			convertView.setTag(holder);
 		} else {
-			holder = (ConversationListItemHolder)convertView.getTag();
+			holder = (Holder)convertView.getTag();
 		}
 		
 		holder.getTvDisplayName().setText(display);
 		holder.getTvLastDate().setText(entity.getLastDate());
 		holder.getTvLastMessage().setText(entity.getLastMessage());
 		holder.getIvHead().setImageResource(R.drawable.default_head);
+		holder.getIvHead().setTag(Integer.valueOf(position));
 		
-		TextPaint tp = holder.getTvDisplayName().getPaint();
+		final TextPaint tp = holder.getTvDisplayName().getPaint();
 		tp.setFakeBoldText(true);
 		
 		return convertView;
@@ -97,7 +104,7 @@ public class ConversationListAdapter extends BaseAdapter{
 		return position;
 	}
 	
-	public int moveToHead(int position){
+	public int moveToHead(final int position){
 		int ret = -1;
 		if ((position == 0) || (position >= list.size())) {
 			ret = -1;
@@ -108,7 +115,7 @@ public class ConversationListAdapter extends BaseAdapter{
 		}
 		return ret;
 	}
-	
+
 	public void init(){
 		list.clear();
 	}
@@ -117,7 +124,47 @@ public class ConversationListAdapter extends BaseAdapter{
 		list.clear();
 	}
 	
-	public void remove(int position){
+	public void remove(final int position){
 		list.remove(position);
 	}
+	
+	public static void unInit(){
+		adapter = null;
+	}
+	
+	private class Holder {
+		
+		private TextView tvDisplayName;
+		private TextView tvLastDate;
+		private TextView tvLastMessage;
+		private ImageView ivHead;
+		
+		public Holder(TextView tvDisplayName,
+				TextView tvLastDate, TextView tvLastMessage, ImageView ivHead) {
+			super();
+			this.tvDisplayName = tvDisplayName;
+			this.tvLastDate = tvLastDate;
+			this.tvLastMessage = tvLastMessage;
+			this.ivHead = ivHead;
+		}
+		
+		public TextView getTvDisplayName() {
+			return tvDisplayName;
+		}
+		
+		public TextView getTvLastDate() {
+			return tvLastDate;
+		}
+		
+		public TextView getTvLastMessage() {
+			return tvLastMessage;
+		}
+		
+		public ImageView getIvHead() {
+			return ivHead;
+		}
+		
+
+	}
+
 }

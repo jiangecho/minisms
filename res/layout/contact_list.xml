@@ -15,50 +15,31 @@
             <TextView
         		android:layout_width="wrap_content" 
         		android:layout_height="wrap_content" 
-        		android:text="MiniSMS"
+        		android:text="联系人"
         		android:layout_centerInParent="true"
         		android:textSize="20sp"		
 				android:textColor="#ffffff" /> 
-			<ImageButton 
-			    android:id="@+id/right_btn"
-			    android:layout_width="67dp" 
-        		android:layout_height="wrap_content"
-        		android:layout_alignParentRight="true" 
-        		android:layout_centerVertical="true"
-        		android:layout_marginRight="5dp"
-        		android:src="@drawable/title_btn_function"
-				android:background="@drawable/title_btn_right"
-			    />      
 		</RelativeLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:background="@drawable/search_bar_bg" >
-
-            <EditText
-                android:id="@+id/editText1"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="Search"
-                android:singleLine="true"
-                android:focusable="false"
-                android:focusableInTouchMode="true"
-                android:textColor="#000"
-                android:drawableLeft="@drawable/search_bar_icon_normal" 
-                android:background="@drawable/search_bar_edit_bg" >               
-            </EditText>
-            
-        </LinearLayout>
-        
-        <ListView 
-            android:id="@+id/lv_contact_list"
-            android:layout_width="fill_parent"
+        <RelativeLayout 
             android:layout_height="fill_parent"
-            android:longClickable="true"
-            android:fastScrollEnabled="true"
-            >
-        </ListView>
+            android:layout_width="fill_parent">
+	        <ListView 
+	            android:id="@+id/lv_contact_list"
+	            android:layout_width="fill_parent"
+	            android:layout_height="fill_parent"
+	            android:longClickable="true"
+	            android:scrollbars="none"
+	            >
+	        </ListView>
+	        
+	        <com.minicontact.AlphaNavView
+		    	android:id="@+id/alphaNavView" 
+				android:background="@android:color/transparent"
+				android:layout_width="30dip" 
+				android:layout_height="fill_parent"
+				android:layout_alignParentRight="true" />
+            
+        </RelativeLayout>
 
  </LinearLayout>

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-import android.database.DataSetObserver;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +14,6 @@ import android.widget.TextView;
 public class ConversationAdapter extends BaseAdapter{
 
 	private List<ConversationEntity> list;
-	private Context context;
 	private static ConversationAdapter adapter;
 	
 	private LayoutInflater layoutInflater;
@@ -69,27 +66,30 @@ public class ConversationAdapter extends BaseAdapter{
 	@Override
 	public int getItemViewType(int position) {
 		// TODO Auto-generated method stub
-		ConversationEntity conversationEntity = list.get(position);
+		int ret;
+		final ConversationEntity entity = list.get(position);
 		
-		if (conversationEntity.isComingMsg()) {
-			return IN;
+		if (entity.isComingMsg()) {
+			ret = IN;
 		} else {
-			return OUT;
+			ret = OUT;
 		}
+		
+		return ret;
 	}
 
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ConversationEntity chatEntity = list.get(position);
-		ConversationHolder chatHolderIn = null;
-		ConversationHolder chatHolderOut = null;
+		final ConversationEntity chatEntity = list.get(position);
+		Holder chatHolderIn = null;
+		Holder chatHolderOut = null;
 		
 		if (convertView == null) {
 			if (chatEntity.isComingMsg()) {
-				chatHolderIn = new ConversationHolder();
+				chatHolderIn = new Holder();
 				convertView = layoutInflater.inflate(R.layout.chat_from_item, null);
 			} else {
 				convertView = layoutInflater.inflate(R.layout.chat_to_item, null);
-				chatHolderOut = new ConversationHolder();
+				chatHolderOut = new Holder();
 			}
 			
 			if (getItemViewType(position) == IN) {
@@ -109,9 +109,9 @@ public class ConversationAdapter extends BaseAdapter{
 			
 		} else {
 			if (getItemViewType(position) == IN) {
-				chatHolderIn = (ConversationHolder)convertView.getTag();
+				chatHolderIn = (Holder)convertView.getTag();
 			} else {
-				chatHolderOut = (ConversationHolder)convertView.getTag();
+				chatHolderOut = (Holder)convertView.getTag();
 			}
 		}
 		
@@ -141,13 +141,44 @@ public class ConversationAdapter extends BaseAdapter{
 		return convertView;
 	}
 
-	public void removeElement(int postion){
+	public void removeElement(final int postion){
 		list.remove(postion);
 	}
 	
-	public void addElement(ConversationEntity conversationEntity){
-		list.add(conversationEntity);
-		Log.i("jiang", "ConversationAdapter  list size " + list.size());
+	public void addElement(final ConversationEntity entity){
+		list.add(entity);
+		//Log.i("jiang", "ConversationAdapter  list size " + list.size());
 		//notifyDataSetChanged();
+	}
+	
+	public static void unInit(){
+		adapter = null;
+	}
+	
+	
+	private class Holder {
+		
+		private TextView tvTime;
+		private ImageView ivUerImage;
+		private TextView tvContent;
+		
+		public TextView getTvTime() {
+			return tvTime;
+		}
+		public void setTvTime(TextView tvTime) {
+			this.tvTime = tvTime;
+		}
+		public ImageView getIvUerImage() {
+			return ivUerImage;
+		}
+		public void setIvUerImage(ImageView ivUerImage) {
+			this.ivUerImage = ivUerImage;
+		}
+		public TextView getTvContent() {
+			return tvContent;
+		}
+		public void setTvContent(TextView tvContent) {
+			this.tvContent = tvContent;
+		}
 	}
 }

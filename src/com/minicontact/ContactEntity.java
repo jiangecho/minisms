@@ -1,12 +1,13 @@
 package com.minicontact;
 
+
 public class ContactEntity {
-	private String name;
-	private String number;
-	private String sortKey;
+	final private String name;
+	final private String number;
+	final private char sortKey;
 	
 	
-	public ContactEntity(String name, String number, String sortKey) {
+	public ContactEntity(String name, String number, char sortKey) {
 		super();
 		this.name = name;
 		this.number = number;
@@ -20,7 +21,7 @@ public class ContactEntity {
 		return number;
 	}
 	
-	public String getSortKey(){
-		return sortKey.charAt(0) + " ";
+	public char getSortKey(){
+		return sortKey;
 	}
 }

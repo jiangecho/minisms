@@ -10,6 +10,7 @@ import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.content.DialogInterface.OnDismissListener;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -36,42 +37,51 @@ public class ConversationListActivity extends Activity implements OnTouchListene
     public static final Uri CONVERSATION_URI = MMSSMS_FULL_CONVERSATION_URI.buildUpon().appendQueryParameter("simple", "true").build(); 
     private static final int REQUESTCODE = 1;
     
+	private boolean needRefresh = true;
+	private boolean alertUp = false;
 	private ListView listView;
 	private ConversationListAdapter adapter;
-	private boolean needRefresh = true;
 	private ContentObserver observer;
 	private ContentResolver contentResolver;
 	private ConversationsQueryHandler queryHandler;
 	private GestureDetector mGestureDetector;
 	
-	private int currentSelectedItem = -1;
+	private Intent startContactListActivityIntent;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
+		Log.i("jiang xx", "onCreate");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.conversation_list);
 		
+		startContactListActivityIntent = new Intent(this, ContactListActivity.class);
+		
 		contentResolver = getContentResolver();
 		listView = (ListView)findViewById(R.id.lv_conversation_list);
 		
+
+		//TODO: when to use application context
+		//only use application context when you know you need a context for something that may live longer than 
+		//any other likely context.
+		//adapter = ConversationListAdapter.getInstance(getApplicationContext());
 		adapter = ConversationListAdapter.getInstance(this);
 		adapter.init();
-		
-		//updateAdapterDataSet(adapter);
-		//listView.setAdapter(adapter);
-		
+		queryHandler = new ConversationsQueryHandler(contentResolver);
 		
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				// TODO Auto-generated method stub
+				ConversationListItemEntity entity = (ConversationListItemEntity) adapter.getItem(position);
 				Log.i("jiang", "onItemClick");
 				Intent intent = new Intent();
 				intent.setClass(ConversationListActivity.this, ConversationActivity.class);
-				intent.putExtra("THREAD_ID", ((ConversationListItemEntity)(adapter.getItem(position))).getThread_id());
-				intent.putExtra("PHONENUMBER", ((ConversationListItemEntity)(adapter.getItem(position))).getPhoneNumber());
+				intent.putExtra("THREAD_ID", entity.getThread_id());
+				intent.putExtra("NAME", entity.getDisplayName());
+				intent.putExtra("PHONENUMBER", entity.getPhoneNumber());
 				startActivity(intent);
 				overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
 			}
@@ -79,14 +89,16 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 		});
 		
 		listView.setOnTouchListener(this);
+		listView.setAdapter(adapter);
 		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				//TODO the selected item is friend or not
 				Log.i("jiang", "ConversationListActivity onItemLongClick");
-				currentSelectedItem = position;
+				final int curPosition = position;
 				
+				alertUp = true;
 				ConversationListItemEntity entity = (ConversationListItemEntity)adapter.getItem(position);
 				String[] optionsArray;
 				String title;
@@ -106,17 +118,14 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 						//TODO 
 						switch (which) {
 						case 0:
-							deleteConvertion(currentSelectedItem);
-							currentSelectedItem = -1;
+							deleteConvertion(curPosition);
 							break;
 						case 1:
-							call(currentSelectedItem);
-							currentSelectedItem = -1;
+							call(curPosition);
 							break;
 							
 						case 2:
-							addToContact();
-							currentSelectedItem = -1;
+							addToContact(curPosition);
 							break;
 						case 3:
 							break;
@@ -129,6 +138,17 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 				.setTitle(title)
 				.create();
 				dialog.show();
+				
+				dialog.setCanceledOnTouchOutside(true);
+				
+				dialog.setOnDismissListener(new OnDismissListener() {
+					
+					@Override
+					public void onDismiss(DialogInterface dialog) {
+						// TODO Auto-generated method stub
+						alertUp = false;
+					}
+				});
 				// TODO Auto-generated method stub
 				return true;
 			}
@@ -137,33 +157,34 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 		contentResolver.registerContentObserver(Uri.parse("content://sms/"), true, observer);
 		
         mGestureDetector = new GestureDetector(new MiniGestureListener(ConversationListActivity.this));
+		startService(new Intent(this, MiniService.class));
 	}
 	
 
 	@Override
 	protected void onStart() {
 		super.onStart();
+		Log.i("jiang xx", "onstart");
 	}
 	
 	@Override
 	protected void onResume() {
-		String[] projection = {"_id", "date", "snippet", "recipient_ids"};
 		
+		Log.i("jiang xx", "onResume");
 		super.onResume();
 		if (needRefresh) {
+			String[] projection = {"_id", "date", "snippet", "recipient_ids"};
 			Log.i("jiang", "updateAdapterDataSet");
 			needRefresh = false;
 			adapter.clear();
-			queryHandler = new ConversationsQueryHandler(contentResolver);
 			queryHandler.startQuery(0, null, CONVERSATION_URI, projection, null, null, "date desc");
-			
-			//updateAdapterDataSet(adapter);
-			adapter.notifyDataSetChanged();
 		}
+		
 	}
 
 	@Override
 	protected void onPause() {
+		Log.i("jiang xx", "onPause");
 		super.onPause();
 	}
 
@@ -177,47 +198,16 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 	protected void onDestroy() {
 		super.onDestroy();
 		contentResolver.unregisterContentObserver(observer);
+		stopService(new Intent(this, MiniService.class));
+		queryHandler.cancelOperation(0);
+		
+		ConversationListAdapter.unInit();
+		adapter = null;
+		listView = null;
+		contentResolver = null;
+		observer = null;
+		queryHandler = null;
 		Log.i("jiang", "onDestroyyyyyyyyyyyyyyyyyyyyyy");
-	}
-
-	public void onHeadClick(View view){
-		//TODO implement the onHeadClick method
-		Log.i("jiang", "onHeadClick " + view.toString());
-	}
-
-	private void updateAdapterDataSet(ConversationListAdapter adapter){
-		
-		String[] projection = {"_id", "date", "snippet", "recipient_ids"};
-		ConversationListItemEntity entity;
-		Cursor cursor = contentResolver.query(CONVERSATION_URI, projection, null, null, "date desc");
-		
-		if (cursor != null) {
-			Cursor cur = null;
-			String[] projection1 = {"address"};
-			String phoneNumber;
-			int phoneNumverIndex;
-			
-			Log.i("jiang", "updateAdapterDataSet");
-			while (cursor.moveToNext()) {
-				//TODO group sms
-				//cur = getContentResolver().query(Uri.parse("content://mms-sms/canonical-addresses"),
-				//		projection1, "_id=?", new String[]{cursor.getString(3)}, null);
-				cur = contentResolver.query(Uri.parse("content://mms-sms/canonical-addresses"),
-						projection1, "_id=" + cursor.getInt(3), null, null);
-				if ((cur != null) && (cur.moveToNext())) {
-					entity = new ConversationListItemEntity(cursor.getInt(0), cursor.getLong(1), cursor.getString(2), 
-							getSenderName(cur.getString(1)), cur.getString(1));
-						cur.close();
-					
-				} else {
-					entity = new ConversationListItemEntity(cursor.getInt(0), cursor.getLong(1), cursor.getString(2), 
-							null, null);
-
-				}
-				adapter.addElement(entity);
-			}
-			cursor.close();
-		}
 	}
 	
 	private class ConversationsQueryHandler extends AsyncQueryHandler{
@@ -230,13 +220,14 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
 			// TODO Auto-generated method stub
+			//String[] projection = {"_id", "date", "snippet", "recipient_ids"};
 			super.onQueryComplete(token, cookie, cursor);
 			
 			if (cursor != null) {
-				int phoneNumverIndex;
+				//int phoneNumverIndex;
 				Cursor cur = null;
 				String[] projection1 = {"address"};
-				String phoneNumber;
+				//String phoneNumber;
 				ConversationListItemEntity entity;
 				
 				Log.i("jiang", "updateAdapterDataSet");
@@ -260,7 +251,7 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 				}
 				cursor.close();
 			}
-			listView.setAdapter(adapter);
+			adapter.notifyDataSetChanged();
 		}	
 	}
 	
@@ -277,10 +268,12 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 		
 		//Cursor cursor = cr.query(Phone.CONTENT_URI, projection, Phone.NUMBER +" = '" + phoneNumber + "'", null, null);
 		Cursor cursor = cr.query(Phone.CONTENT_URI, projection, selection, null, null);
-		if ((cursor != null) && (cursor.moveToFirst())) {
-			name = cursor.getString(0);
+		if (cursor != null) {
+			if (cursor.moveToNext()) {
+				name = cursor.getString(0);
+			}
+			cursor.close();
 		}
-		cursor.close();
 		return name;
 	}
 	
@@ -326,8 +319,8 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 		
 	}
 	
-	private void addToContact(){
-		ConversationListItemEntity entity = (ConversationListItemEntity)adapter.getItem(currentSelectedItem);
+	private void addToContact(final int position){
+		ConversationListItemEntity entity = (ConversationListItemEntity)adapter.getItem(position);
 		Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
 		intent.setType("vnd.android.cursor.dir/person");
 		intent.putExtra(ContactsContract.Intents.Insert.PHONE, entity.getPhoneNumber());
@@ -349,23 +342,39 @@ public class ConversationListActivity extends Activity implements OnTouchListene
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		Log.i("jiang", "conversationListActivity onTouch");
-		mGestureDetector.onTouchEvent(event);
+		if ((mGestureDetector != null) && (!alertUp)) {
+			mGestureDetector.onTouchEvent(event);
+		}
 		return false;
 	}
-	
+
+
+	@Override
+	public void onBackPressed() {
+		// TODO Auto-generated method stub
+		//super.onBackPressed();
+		finish();
+		overridePendingTransition(0, R.anim.out_to_right);
+	}
+
+
 	public void swipeToRight(){
 		
 		Log.i("jiang" , "haaaaaaaaaaaaaaaa");
-		Intent intent = new Intent(this, ContactListActivity.class);
-		startActivity(intent);
-		overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
+		startActivity(startContactListActivityIntent);
+		overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);
 	}
 	
 	public void swipeToLeft(){
 		
 		Log.i("jiang" , "haaaaaaaaaaaaaaaa");
-		Intent intent = new Intent(this, ContactListActivity.class);
-		startActivity(intent);
-		overridePendingTransition(R.anim.in_from_left, R.anim.out_to_right);
+		startActivity(startContactListActivityIntent);
+		overridePendingTransition(R.anim.in_from_right, R.anim.out_to_left);
+	}
+	
+	public void onHeadClick(View view){
+		Integer poInteger = (Integer)view.getTag();
+		int position = poInteger.intValue();
+		Log.i("jiang", " onHeadClick" + position);
 	}
 }

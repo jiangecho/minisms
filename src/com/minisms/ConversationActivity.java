@@ -1,10 +1,6 @@
 package com.minisms;
 
 import java.util.ArrayList;
-import java.util.List;
-
-
-import android.R.anim;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
@@ -12,6 +8,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -30,16 +27,17 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemLongClickListener;
 
 public class ConversationActivity extends Activity {
 	
 	private final String SMS_URI_ALL = "content://sms/";
-	private final String SMS_URI_CONVERSATION = "content://threads/";
+	//private final String SMS_URI_CONVERSATION = "content://threads/";
 	private final String SMS_URI_INBOX = "content://sms/inbox";
-	private final String SMS_URI_SEND = "content://sms/sent";
-	private final String SMS_URI_DRAFT = "content://sms/draft";
+	//private final String SMS_URI_SEND = "content://sms/sent";
+	//private final String SMS_URI_DRAFT = "content://sms/draft";
 	
 	private final String ADDR = "address";
 	private final String THREAD_ID = "thread_id";
@@ -51,8 +49,10 @@ public class ConversationActivity extends Activity {
 	private ListView mListView;
 	private Button mSendBtn;
 	private EditText mEditText;
+	private TextView tvConversationWith;
 	private int mThread_id;
 	private String mPhoneNumber;
+	private String mConversationWith;
 	private ConversationAdapter mAdapter;
 	private ContentResolver mContentResolver;		
 	private SharedPreferences mSharedPreferences; 
@@ -73,6 +73,10 @@ public class ConversationActivity extends Activity {
 		mContentResolver = getContentResolver();
 		
 		mPhoneNumber = getIntent().getStringExtra("PHONENUMBER");
+		mConversationWith = getIntent().getStringExtra("NAME");
+		if (mConversationWith == null) {
+			mConversationWith = mPhoneNumber;
+		}
 		mSharedPreferences = getSharedPreferences("currentPhoneNumber", MODE_PRIVATE);
 		mSharedPreferences.edit().putString("currentPhoneNumber", mPhoneNumber).apply();
 		
@@ -92,7 +96,12 @@ public class ConversationActivity extends Activity {
 					new String[]{Integer.toString(mThread_id)}, "date asc");
 		}
 		
+		tvConversationWith = (TextView) findViewById(R.id.tvConversationWith);
+		tvConversationWith.setText(mConversationWith);
+		
 		mListView = (ListView)findViewById(R.id.listview);
+		mListView.setAdapter(mAdapter);
+		mListView.setSelector(android.R.color.transparent);
 		
 		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
@@ -103,7 +112,7 @@ public class ConversationActivity extends Activity {
 				selectedIndex = position;
 				String[] options = getResources().getStringArray(R.array.conversation_options);
 				AlertDialog dialog = new AlertDialog.Builder(ConversationActivity.this)
-									.setTitle(mPhoneNumber)
+									.setTitle(mConversationWith)
 									.setItems(options, new DialogInterface.OnClickListener() {
 										
 										public void onClick(DialogInterface dialog, int which) {
@@ -111,6 +120,10 @@ public class ConversationActivity extends Activity {
 											switch (which) {
 											case 0:
 												deleteCurMsg();
+												break;
+												
+											case 1:
+												forwardCurMsg();
 												break;
 
 											default:
@@ -124,10 +137,14 @@ public class ConversationActivity extends Activity {
 			}
 		});
 		//mListView.setStackFromBottom(true);
+		String text = getIntent().getStringExtra("TEXT");
 		mEditText = (EditText)findViewById(R.id.et_sendmessage);
+		if (text != null) {
+			mEditText.setText(text);
+			mEditText.setSelection(text.length());
+		}
 		mSendBtn = (Button)findViewById(R.id.btn_send);
 		mSendBtn.setOnClickListener(new OnClickListener() {
-			
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				Editable text = mEditText.getText();
@@ -168,7 +185,6 @@ public class ConversationActivity extends Activity {
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
-		mSharedPreferences.edit().putString("currentPhoneNumber", null).apply();
 		Log.i("jiang", "onPauseeeeeeeeeeeeeeeeeeeee");
 		super.onPause();
 	}
@@ -177,7 +193,11 @@ public class ConversationActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		mSharedPreferences.edit().putString("currentPhoneNumber", null).apply();
 		mContentResolver.unregisterContentObserver(observer);
+		ConversationAdapter.unInit();
+		queryHandler.cancelOperation(0);
+		queryHandler = null;
 		mListView = null;
 		mAdapter = null;
 		mContentResolver = null;
@@ -202,8 +222,8 @@ public class ConversationActivity extends Activity {
 			while (cursor.moveToNext()) {
 				threadId = cursor.getInt(threadIdColumn);
 			}
+			cursor.close();
 		}
-		cursor.close();
 		
 		return threadId;
 	}
@@ -218,6 +238,7 @@ public class ConversationActivity extends Activity {
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
 			// TODO Auto-generated method stub
+			//String[] projection = {"_id", ADDR, "person", "body", "date", "type", "read"};
 			int _id;
 			int read;
 			ConversationEntity chatEntity;
@@ -241,9 +262,8 @@ public class ConversationActivity extends Activity {
 				cursor.close();
 			}
 			
-			mListView.setAdapter(mAdapter);
 			mListView.setSelection(mAdapter.getCount() - 1);
-			mListView.setSelector(android.R.color.transparent);
+			mAdapter.notifyDataSetChanged();
 		}
 	}
 	
@@ -339,6 +359,13 @@ public class ConversationActivity extends Activity {
 			}
 		//}.execute(new Integer(mThread_id), new Integer(_id));
 		}.execute(Integer.valueOf(mThread_id), Integer.valueOf(_id));
+	}
+	
+	private void forwardCurMsg(){
+		ConversationEntity entity = (ConversationEntity)mAdapter.getItem(selectedIndex);
+		Intent intent = new Intent(this, com.minicontact.ContactListActivity.class);
+		intent.putExtra("TEXT", entity.getContent());
+		startActivity(intent);
 	}
 	
 }

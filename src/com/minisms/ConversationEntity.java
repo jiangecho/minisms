@@ -6,6 +6,7 @@ import java.util.Date;
 public class ConversationEntity {
 	
 	private long time;
+// TODO: Found non-transient, non-static member. Please mark as transient or provide accessors.
 	private String date;
 	private String content;
 	private boolean isComingMsg;
@@ -44,6 +45,7 @@ public class ConversationEntity {
 		return date;
 	}
 	
+// TODO: Parameter 'date' is not assigned and could be declared final
 	public void setDate(String date) {
 		this.date = date;
 	}

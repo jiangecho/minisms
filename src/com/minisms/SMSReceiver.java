@@ -19,22 +19,34 @@ public class SMSReceiver extends BroadcastReceiver{
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
+		String fromAddr;
+		String currentAddr;
 		
 		if(intent.getAction().equals(RECEIVE_SMS)) {
 			//intent.setClassName("com.test", "TestActivity");
 			SharedPreferences sharedPreferences = context.getSharedPreferences("currentPhoneNumber", 0);
-			String currentPh = sharedPreferences.getString("currentPhoneNumber", null);
+			currentAddr = sharedPreferences.getString("currentPhoneNumber", null);
+			
+			if ((currentAddr != null) && (currentAddr.startsWith("+86"))) {
+				currentAddr = currentAddr.substring(3);
+			}
 			
 			Bundle bundle = intent.getExtras();
 			if (bundle != null) {
 				Object[] messages = (Object[])bundle.get("pdus");
 				//just handle the first one
 				SmsMessage msg = SmsMessage.createFromPdu((byte[])messages[0]);
-				msg.getDisplayOriginatingAddress();
+				fromAddr = msg.getDisplayOriginatingAddress();
+				
+				if (fromAddr.startsWith("+86")) {
+					fromAddr = fromAddr.substring(3);
+				}
 				
 				Log.i("SMSReceiver", msg.getDisplayOriginatingAddress());
-				if ((currentPh != null) && (currentPh.equals(msg.getDisplayOriginatingAddress()))) {
-					Log.i("SMSReceiver", "current conversation num " + currentPh);
+				if ((currentAddr != null) 
+						&& (currentAddr.equals(fromAddr))
+						&& (isActivityRunning(context, "com.minisms.ConversationActivity"))) {
+					Log.i("SMSReceiver", "current conversation num " + currentAddr);
 					; // do nothing
 				} else {
 					intent.setClass(context, MiniSMSActivity.class);
@@ -54,9 +66,10 @@ public class SMSReceiver extends BroadcastReceiver{
 		List<RunningTaskInfo> taskList = activityManager.getRunningTasks(Integer.MAX_VALUE);
 		
 		for (RunningTaskInfo runningTaskInfo : taskList) {
-			Log.i("jiang", runningTaskInfo.topActivity.getClassName());
+			Log.i("jiang ++++", runningTaskInfo.topActivity.getClassName());
 			if (runningTaskInfo.topActivity.getClassName().equals(className)) {
 				isRunning = true;
+				break;
 			}
 		}
 		

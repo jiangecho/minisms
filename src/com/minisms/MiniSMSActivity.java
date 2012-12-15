@@ -3,7 +3,11 @@ package com.minisms;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Stack;
+
+import org.apache.http.cookie.SM;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,6 +20,7 @@ import android.content.DialogInterface.OnKeyListener;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
@@ -45,8 +50,8 @@ public class MiniSMSActivity extends Activity {
 	TextView tvTime;
 	TextView tvMsgCount;
 	EditText editText;
-	Stack<SmsMessage> msgsStack = new Stack<SmsMessage>();
-	SmsMessage curmsg;
+	Queue<MiniMsg> msgsQueue = new LinkedList<MiniMsg>();
+	MiniMsg curmsg;
 	GestureDetector mGestureDetector;
 	
     /** Called when the activity is first created. */
@@ -72,8 +77,8 @@ public class MiniSMSActivity extends Activity {
         
         getMsg(getIntent());
         
-        if(!msgsStack.empty()){
-        	updateMsgPopUp(msgsStack.pop());
+        if(!msgsQueue.isEmpty()){
+        	updateMsgPopUp(msgsQueue.poll());
         }
         
         
@@ -88,7 +93,7 @@ public class MiniSMSActivity extends Activity {
         ivFrom.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + curmsg.getDisplayOriginatingAddress()));
+				Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + curmsg.getAddr()));
 				startActivity(callIntent);
 				
 			}
@@ -135,11 +140,11 @@ public class MiniSMSActivity extends Activity {
 				Editable text = editText.getText();
 				editText.setText("");
 				if((text != null) && (text.length() > 0)){
-					sendMSG(curmsg.getDisplayOriginatingAddress(), text.toString());
-					updateMSG(curmsg.getDisplayMessageBody());
+					sendMSG(curmsg.getAddr(), text.toString());
+					updateMSG(curmsg.getContent());
 					//TODO reply the current msg at first.
-					if(!msgsStack.empty()){
-						updateMsgPopUp(msgsStack.pop());
+					if(!msgsQueue.isEmpty()){
+						updateMsgPopUp(msgsQueue.poll());
 					}else {
 						dialog.dismiss();
 						finish();
@@ -153,9 +158,9 @@ public class MiniSMSActivity extends Activity {
 			
 			case R.id.ibClose:
 			{
-				deleteMSG(curmsg.getDisplayMessageBody());
-				if(!msgsStack.empty()){
-					updateMsgPopUp(msgsStack.pop());
+				deleteMSG(curmsg.getContent());
+				if(!msgsQueue.isEmpty()){
+					updateMsgPopUp(msgsQueue.poll());
 				}else {
 					dialog.dismiss();
 					finish();
@@ -209,14 +214,23 @@ public class MiniSMSActivity extends Activity {
 	private void getMsg(Intent intent){
 		
 		Bundle bundle = intent.getExtras();
+		MiniMsg miniMsg;
 		SmsMessage msg;
+		String addr = null;
+		long time = 0;
+		StringBuffer strBuffer = new StringBuffer();
+		
 		Log.i("jiang", "getMsg");
 		if(bundle != null){
 			Object[] messages = (Object[])bundle.get("pdus");
 			for(int i = 0; i < messages.length; i++){
 				msg = SmsMessage.createFromPdu((byte[])messages[i]);
-				msgsStack.push(msg);
+				strBuffer.append(msg.getDisplayMessageBody());
+				addr = msg.getDisplayOriginatingAddress();
+				time = msg.getTimestampMillis();
 			}
+			miniMsg = new MiniMsg(addr, strBuffer.toString(), time);
+		msgsQueue.offer(miniMsg);
 		}
 		
 	}
@@ -263,10 +277,8 @@ public class MiniSMSActivity extends Activity {
 					break;
 				}
 			}
+			cursor.close();
 		}
-		
-		cursor.close();
-		
 	}
 	
 	private void deleteMSG(String body){
@@ -289,8 +301,8 @@ public class MiniSMSActivity extends Activity {
 				}
 				Log.i("jiang", "deleteMSG " + test);
 			}
-		}
 		cursor.close();
+		}
 		
 	}
     
@@ -307,35 +319,37 @@ public class MiniSMSActivity extends Activity {
 		
 		//Cursor cursor = cr.query(Phone.CONTENT_URI, projection, Phone.NUMBER +" = '" + phoneNumber + "'", null, null);
 		Cursor cursor = cr.query(Phone.CONTENT_URI, projection, selection, null, null);
-		if ((cursor != null) && (cursor.moveToFirst())) {
-			name = cursor.getString(0);
+		if ((cursor != null)) {
+			if (cursor.moveToFirst()) {
+				name = cursor.getString(0);
+			}
+			cursor.close();
 		}
-		cursor.close();
 		return name;
 	}
 	
 	private void updatetvFrom(){
-    	String name = getSenderName(curmsg.getDisplayOriginatingAddress());
-    	Log.i("jiang", curmsg.getDisplayOriginatingAddress());
+    	String name = getSenderName(curmsg.getAddr());
+    	Log.i("jiang", curmsg.getAddr());
         	
     	if(name != null){
     		tvFrom.setText(name);
     	}else {
-			tvFrom.setText(curmsg.getDisplayOriginatingAddress());
+			tvFrom.setText(curmsg.getAddr());
 		}
 	}
 	
 	private void updatetvTime(){
-    	String date = new SimpleDateFormat("hh:mm").format(new Date(curmsg.getTimestampMillis()));
+    	String date = new SimpleDateFormat("hh:mm").format(new Date(curmsg.getTimestamp()));
     	tvTime.setText(date);
 	}
 	
 	private void updatetvMessage(){
-		tvMessage.setText(curmsg.getMessageBody());
+		tvMessage.setText(curmsg.getContent());
 	}
 	
 	private void updatetvMsgCount(){
-		int msgCount = msgsStack.size();
+		int msgCount = msgsQueue.size();
 		if (msgCount > 0) {
 			tvMsgCount.setText("U: " + msgCount);
 		}else {
@@ -343,7 +357,7 @@ public class MiniSMSActivity extends Activity {
 		}
 	}
 	
-	private void updateMsgPopUp(SmsMessage curMessage){
+	private void updateMsgPopUp(MiniMsg curMessage){
 		curmsg = curMessage;
 		updatetvFrom();
 		updatetvMessage();
@@ -351,15 +365,53 @@ public class MiniSMSActivity extends Activity {
 		updatetvMsgCount();
 	}
 	
-	public void swipe(){
-		updateMSG(curmsg.getDisplayMessageBody());
+	private void swipe(int exitAnim){
+		updateMSG(curmsg.getContent());
 		
-		if(!msgsStack.empty()){
-			updateMSG(curmsg.getDisplayMessageBody());
-			updateMsgPopUp(msgsStack.pop());
+		if(!msgsQueue.isEmpty()){
+			updateMSG(curmsg.getContent());
+			updateMsgPopUp(msgsQueue.poll());
 		}else {
 			dialog.dismiss();
 			finish();
+			overridePendingTransition(0, exitAnim);
+		}
 	}
+	
+	public void swipeToLeft(){
+		swipe(R.anim.out_to_left);
+		
 	}
+	public void swipeToRight(){
+		swipe(R.anim.out_to_right);
+	}
+	public void swipeToTop(){
+		swipe(R.anim.out_to_top);
+	}
+	public void swipeToBottom(){
+		swipe(R.anim.out_to_bottom);
+	}
+	
+	private class MiniMsg{
+		String addr;
+		String content;
+		long time;
+		public MiniMsg(String addr, String content, long time) {
+			super();
+			this.addr = addr;
+			this.content = content;
+			this.time = time;
+		}
+		String getAddr() {
+			return addr;
+		}
+		String getContent() {
+			return content;
+		}
+		long getTimestamp() {
+			return time;
+		}
+		
+	}
+	
 }
